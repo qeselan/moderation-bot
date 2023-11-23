@@ -6,6 +6,10 @@ import InteractionsRoute from './routes/interactions_route';
 const app = express();
 const port = 3000;
 
+app.get('/health', (req, res) => {
+  res.status(200).send('Health check successful.');
+});
+
 app.use(express.json({ verify: VerifyDiscordRequest(process.env.PUBLIC_KEY) }));
 
 app.use('/interactions', InteractionsRoute);

@@ -1,0 +1,14 @@
+{
+  "hosted-zone:account=364570857738:domainName=pepega.click:region=us-east-1": {
+    "Id": "/hostedzone/Z03045821KP3FDPUA534M",
+    "Name": "pepega.click."
+  },
+  "availability-zones:account=364570857738:region=us-east-1": [
+    "us-east-1a",
+    "us-east-1b",
+    "us-east-1c",
+    "us-east-1d",
+    "us-east-1e",
+    "us-east-1f"
+  ]
+}
