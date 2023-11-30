@@ -14,14 +14,14 @@ import { ARecord, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { LoadBalancerTarget } from "aws-cdk-lib/aws-route53-targets";
 import * as sm from "aws-cdk-lib/aws-secretsmanager";
 
-import { ACM } from "./ACM";
-import { Route53 } from "./Route53";
+import { ACM } from "../ACM";
+import { Route53 } from "../Route53";
 
 import {
   backend_subdomain,
   domain_name,
   discord_secret_arn,
-} from "../config.json";
+} from "../../../config.json";
 
 interface Props {
   vpc: Vpc;
