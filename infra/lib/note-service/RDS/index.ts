@@ -1,6 +1,6 @@
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as rds from "aws-cdk-lib/aws-rds";
-import { CfnOutput, Duration, Token } from "aws-cdk-lib";
+import { CfnOutput, Duration, RemovalPolicy, Token } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
 import { DockerImageCode } from "aws-cdk-lib/aws-lambda";
@@ -19,39 +19,39 @@ export class RDS extends Construct {
   constructor(scope: Construct, id: string, props: Props) {
     super(scope, id);
 
-    const instance_id = `my-sql-instance-${process.env.NODE_ENV}`;
+    const instance_id = `postgres-instance`;
     const credentials_secret_name = `rds/${instance_id}`;
 
-    this.credentials = new rds.DatabaseSecret(
-      scope,
-      `MySQLCredentials-${process.env.NODE_ENV || ""}`,
-      {
-        secretName: credentials_secret_name,
-        username: "admin",
-      }
-    );
+    this.credentials = new rds.DatabaseSecret(scope, `PostgresCredentials`, {
+      secretName: credentials_secret_name,
+      username: "admin_user",
+    });
+
+    const engine = rds.DatabaseInstanceEngine.postgres({
+      version: rds.PostgresEngineVersion.VER_13_7,
+    });
 
     this.instance = new rds.DatabaseInstance(
       scope,
-      `MySQL-RDS-Instance-${process.env.NODE_ENV || ""}`,
+      `postgres-RDS-Instance-${process.env.NODE_ENV || ""}`,
       {
         credentials: rds.Credentials.fromSecret(this.credentials),
-        databaseName: "todolist",
-        engine: rds.DatabaseInstanceEngine.mysql({
-          version: rds.MysqlEngineVersion.VER_8_0_28,
-        }),
+        databaseName: "note_service",
+        engine,
         instanceIdentifier: instance_id,
         instanceType: ec2.InstanceType.of(
-          ec2.InstanceClass.T2,
-          ec2.InstanceSize.SMALL
+          ec2.InstanceClass.T3,
+          ec2.InstanceSize.MICRO
         ),
-        port: 3306,
+        port: 5432,
         publiclyAccessible: false,
         vpc: props.vpc,
         vpcSubnets: {
           onePerAz: false,
           subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
         },
+        deleteAutomatedBackups: true,
+        removalPolicy: RemovalPolicy.DESTROY,
       }
     );
 
@@ -62,13 +62,13 @@ export class RDS extends Construct {
         config: {
           credentials_secret_name,
         },
-        function_log_retention: RetentionDays.FIVE_MONTHS,
+        function_log_retention: RetentionDays.THREE_DAYS,
         function_code: DockerImageCode.fromImageAsset(`${__dirname}/init`, {}),
         function_timeout: Duration.minutes(2),
         function_security_groups: [],
         vpc: props.vpc,
         subnets_selection: props.vpc.selectSubnets({
-          subnetType: ec2.SubnetType.PRIVATE_WITH_NAT,
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
         }),
       }
     );
@@ -79,7 +79,7 @@ export class RDS extends Construct {
 
     this.instance.connections.allowFrom(
       initializer.function,
-      ec2.Port.tcp(3306)
+      ec2.Port.tcp(5432)
     );
 
     /* ----------

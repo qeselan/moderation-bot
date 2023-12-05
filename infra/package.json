@@ -6,6 +6,9 @@
   },
   "scripts": {
     "build": "tsc",
+    "build-server": "tsc ./server",
+    "build-note": "tsc ./note-service",
+    "deploy": "build-server && build-note && cdk deploy VpcStack NoteServiceStack",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"

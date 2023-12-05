@@ -27,6 +27,7 @@ interface Props {
   vpc: Vpc;
   acm: ACM;
   route53: Route53;
+  noteServiceLoadBalancer: ApplicationLoadBalancer;
 }
 
 export class ECS extends Construct {
@@ -68,7 +69,7 @@ export class ECS extends Construct {
 
     this.container = this.task_definition.addContainer("Express", {
       image: ecs.ContainerImage.fromAsset(
-        resolve(__dirname, "..", "..", "server")
+        resolve(__dirname, "..", "..", "..", "..", "server")
       ),
       memoryLimitMiB: 256,
       logging: ecs.LogDriver.awsLogs({
@@ -77,6 +78,9 @@ export class ECS extends Construct {
       }),
       secrets: {
         PUBLIC_KEY: ecs.Secret.fromSecretsManager(secret, "PUBLIC_KEY"),
+      },
+      environment: {
+        NOTE_SERVICE: props.noteServiceLoadBalancer.loadBalancerDnsName,
       },
     });
 

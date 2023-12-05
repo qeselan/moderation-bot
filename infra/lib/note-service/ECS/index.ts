@@ -43,7 +43,7 @@ export class ECS extends Construct {
     super(scope, id);
 
     this.log_group = new LogGroup(scope, "ECSLogGroup", {
-      logGroupName: "ecs-logs-moderation-bot",
+      logGroupName: "ecs-logs-moderation-bot/note-service",
       retention: RetentionDays.ONE_DAY,
       removalPolicy: RemovalPolicy.DESTROY,
     });
@@ -63,11 +63,11 @@ export class ECS extends Construct {
 
     this.container = this.task_definition.addContainer("Express", {
       image: ecs.ContainerImage.fromAsset(
-        resolve(__dirname, "..", "..", "server")
+        resolve(__dirname, "..", "..", "..", "..", "note-service")
       ),
       memoryLimitMiB: 256,
       logging: ecs.LogDriver.awsLogs({
-        streamPrefix: "moderation-bot",
+        streamPrefix: "moderation-bot/note-service",
         logGroup: this.log_group,
       }),
       secrets: {
@@ -76,7 +76,7 @@ export class ECS extends Construct {
     });
 
     this.container.addPortMappings({
-      containerPort: 3000,
+      containerPort: 4000,
       protocol: ecs.Protocol.TCP,
     });
 
@@ -87,12 +87,12 @@ export class ECS extends Construct {
 
     this.load_balancer = new ApplicationLoadBalancer(scope, "LB", {
       vpc: props.vpc,
-      internetFacing: true,
-      loadBalancerName: "moderation-bot-lb",
+      internetFacing: false,
+      loadBalancerName: "note-service-lb",
     });
 
-    this.listener = this.load_balancer.addListener("PublicListener", {
-      port: 443,
+    this.listener = this.load_balancer.addListener("PrivateListener", {
+      port: 80,
       open: true,
     });
 
@@ -101,7 +101,7 @@ export class ECS extends Construct {
       targets: [
         this.service.loadBalancerTarget({
           containerName: "Express",
-          containerPort: 3000,
+          containerPort: 4000,
         }),
       ],
       healthCheck: {
