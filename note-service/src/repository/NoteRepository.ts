@@ -18,6 +18,7 @@ export const insertNote = async (
     'INSERT INTO notes(user_name, note, access) VALUES($1,$2,$3) RETURNING *';
   const values = [user_name, note, access];
   const result = await executeQuery(queryString, values);
+  console.log('created new note with values: ' + values);
   if (result.rowCount < 1) {
     throw new Error("Note can't be created!");
   }

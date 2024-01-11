@@ -26,29 +26,27 @@ const getSecretValue = async (secretId: string) => {
   return JSON.parse(SecretString);
 };
 
-// export const DBClient = async () => {
-//   if (!client) {
-//     client = new Client({
-//       host: process.env.DB_HOST,
-//       user: process.env.DB_USER,
-//       database: process.env.DB_NAME,
-//       password: process.env.DB_PASSWORD,
-//       port: parseInt(process.env.DB_PORT)
-//     });
-//     await client.connect();
-//   }
-//   return client;
-// };
+const getDbConfig = async () => {
+  let secretValue;
+  if (process.env.NODE_ENV === 'production') {
+    secretValue = await getSecretValue('rds/postgres-instance');
+  } else {
+    secretValue = {
+      password: process.env.DB_PASSWORD,
+      username: process.env.DB_USER,
+      host: process.env.RDS_HOST
+    };
+  }
+  return secretValue;
+};
 
 const init = async () => {
-  const { password, username, host } = await getSecretValue(
-    'rds/postgres-instance'
-  );
+  const { password, username, host } = await getDbConfig();
   client = new Client({
-    host: process.env.RDS_HOST || host,
-    user: process.env.DB_USER || username,
-    database: process.env.DB_NAME || 'note_service',
-    password: process.env.DB_PASSWORD || password,
+    host: host,
+    user: username,
+    database: 'note_service',
+    password: password,
     port: 5432
   });
   console.log('Connecting to DB...');

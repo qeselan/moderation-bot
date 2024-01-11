@@ -13,20 +13,35 @@ router.post('/', async (req: Request, res: Response) => {
   }
 
   if (type === InteractionType.APPLICATION_COMMAND) {
-    const { name } = data;
+    const { name: command } = data;
+    const userId = req.body.member.user.id;
 
-    let note = '';
-    let access_level = Access.PUBLIC;
-    const inputs = data.options[0].options;
-    for (const input of inputs) {
-      if (input.name === 'note') note = input.value;
-      if (input.name === 'access_level') access_level = input.value;
-    }
+    if (command === 'note') {
+      const subcommand = data.options[0].name;
+      const options = data.options[0].options;
 
-    if (name === 'note') {
-      const userId = req.body.member.user.id;
+      let access_level = Access.PUBLIC;
+      let text = '';
 
-      await createNote(userId, note, access_level);
+      for (const option of options) {
+        if (option.name === 'text') text = option.value;
+        if (option.value === 'access_level') access_level = option.value;
+      }
+
+      if (subcommand === "add") {
+        await createNote(userId, text, access_level);
+      }
+
+      if (subcommand === "get") {
+        await 
+      }
+
+
+      
+
+      
+
+      console.log('note value: ' + text);
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {

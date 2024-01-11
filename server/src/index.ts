@@ -6,11 +6,6 @@ import InteractionsRoute from './routes/interactions_route';
 const app = express();
 const port = 3000;
 
-app.use((req, res, next) => {
-  console.log('REQUEST RECEIVED');
-  next();
-});
-
 app.get('/health', (req, res) => {
   res.status(200).send('Health check successful.');
 });

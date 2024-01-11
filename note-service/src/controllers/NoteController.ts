@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { getNotesByUserName, insertNote } from '../repository/NoteRepository';
 
 export const getNotes = async (req: Request, res: Response) => {
-  const { user_name } = req.body;
+  const user_name = req.query.user;
   const notes = await getNotesByUserName(user_name);
   res.status(200).send({ notes });
 };
